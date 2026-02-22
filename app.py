@@ -8,40 +8,54 @@ st.set_page_config(page_title="Solcelle-Analytikeren Pro", layout="centered")
 # Avansert CSS for farger og kontrast
 st.markdown("""
     <style>
+    /* Hovedbakgrunn */
     .stApp {
         background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
-        color: #f8fafc;
     }
-    label, .stMarkdown p, h1, h2, h3 {
+    
+    /* Hovedinnhold: Overskrifter og tekst i senter */
+    .main h1, .main h2, .main h3, .main p, .main .stMarkdown {
         color: #ffffff !important;
     }
+
+    /* Sidebar (Konfigurasjon): Mørk tekst på lys bakgrunn */
+    section[data-testid="stSidebar"] {
+        background-color: #f8fafc !important;
+    }
+    section[data-testid="stSidebar"] .stMarkdown p, 
+    section[data-testid="stSidebar"] label, 
+    section[data-testid="stSidebar"] h2, 
+    section[data-testid="stSidebar"] h1 {
+        color: #1e293b !important;
+    }
+
+    /* Metric-bokser (Hovedtall) */
+    div[data-testid="metric-container"] label {
+        color: #e2e8f0 !important; /* Lys grå/hvit tekst på merkelappen */
+        font-weight: 500;
+    }
+    div[data-testid="stMetricValue"] {
+        color: #ffcf33 !important; /* Gul farge på selve tallene */
+        font-weight: 800;
+    }
+
+    /* Download-knappen */
     div.stDownloadButton > button {
         background-color: #ffcf33 !important;
         color: #000000 !important;
         font-weight: bold !important;
         border: none !important;
-        padding: 10px 20px !important;
-    }
-    div.stDownloadButton > button:hover {
-        background-color: #e6b92d !important;
-        color: #000000 !important;
-    }
-    div[data-testid="metric-container"] {
-        background: rgba(255, 255, 255, 0.05);
-        padding: 15px;
-        border-radius: 10px;
-        border: 1px solid rgba(255, 255, 255, 0.1);
     }
     </style>
     """, unsafe_allow_html=True)
 
 st.title("☀️ Solcelle-Analytikeren Pro")
-st.write("Profesjonelt beslutningsverktøy for solenergi (0-50 år).")
+st.write("Profesjonelt beslutningsverktøy for solenergi.")
 
 def format_no(number):
     return f"{int(number):,}".replace(",", " ")
 
-# --- SIDEBAR: INNDATA ---
+# --- SIDEBAR: INNDATA (Mørk tekst her) ---
 with st.sidebar:
     st.header("⚙️ Konfigurasjon")
     area = st.number_input("Takareal tilgjengelig (m2)", value=40, step=5)
@@ -49,19 +63,17 @@ with st.sidebar:
     region = st.selectbox("Landsdel", ["Sør/Østlandet", "Vestlandet", "Midt-Norge", "Nord-Norge"])
     
     st.write("---")
-    st.write("**Strømpris inkl. nettleie (NOK/kWh)**")
+    st.write("Strømpris inkl. nettleie (NOK/kWh)")
     
-    # Initialize session state for price
     if 'price_input' not in st.session_state:
         st.session_state.price_input = 1.5
 
-    # Slider og manuelt felt koblet sammen
     el_price_slider = st.slider("Dra for å justere", 0.0, 10.0, float(st.session_state.price_input), step=0.1)
     el_price_manual = st.number_input("Eller skriv inn nøyaktig pris", value=float(el_price_slider), step=0.01)
     
     el_price = el_price_manual
 
-# --- LOGIKK OG BEREGNINGER ---
+# --- LOGIKK ---
 dir_factor = 1.0 if "Sør" in direction else 0.85 if "Øst" in direction else 0.6
 region_kwh = {"Sør/Østlandet": 1000, "Vestlandet": 850, "Midt-Norge": 750, "Nord-Norge": 650}[region]
 
@@ -76,7 +88,7 @@ net_investment = total_investment - enova_support
 annual_savings = yearly_production * el_price
 payback_years = net_investment / annual_savings if annual_savings > 0 else 0
 
-# --- VISNING AV RESULTATER ---
+# --- VISNING ---
 st.subheader("Hovedtall")
 col1, col2 = st.columns(2)
 with col1:
@@ -86,24 +98,18 @@ with col2:
     st.metric("Netto investering", f"{format_no(net_investment)} kr")
     st.metric("Nedbetalingstid", f"{round(payback_years, 1)} år")
 
-# --- GRAF OG DATA (0-50 ÅR) ---
 st.divider()
 st.subheader("Akkumulert netto gevinst over 50 år (NOK)")
 
 years = list(range(0, 51))
 accumulated_values = [int(annual_savings * i - net_investment) for i in years]
 
-df_graph = pd.DataFrame({
-    "ÅR": years,
-    "NOK": accumulated_values
-}).set_index("ÅR")
-
+df_graph = pd.DataFrame({"ÅR": years, "NOK": accumulated_values}).set_index("ÅR")
 st.area_chart(df_graph)
 
-# --- EXCEL EKSPORT ---
 output = io.BytesIO()
 with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
-    df_graph.reset_index().to_excel(writer, index=False, sheet_name='Nedbetalingsplan_50_aar')
+    df_graph.reset_index().to_excel(writer, index=False, sheet_name='Nedbetalingsplan')
 processed_data = output.getvalue()
 
 st.download_button(
@@ -113,9 +119,7 @@ st.download_button(
     mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
 )
 
-# --- MILJØPROFIL ---
 st.divider()
 st.subheader("🌱 Din miljøprofil")
 co2_saved_50y = (yearly_production * 50) * 0.4 / 1000
 st.write(f"Over 50 år vil anlegget spare miljøet for ca. **{round(co2_saved_50y, 1)} tonn CO2**.")
-st.caption("Dette tilsvarer CO2-opptaket til ca. " + str(int(co2_saved_50y * 50)) + " trær.")
