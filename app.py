@@ -5,7 +5,7 @@ import io
 # 1. Konfigurasjon og Design
 st.set_page_config(page_title="Solcelle-Analytikeren Pro", layout="centered")
 
-# CSS for ekstrem overstyring av farger, inkludert de gjenstridige dropdown-menyene
+# CSS for total kontroll over farger og de gjenstridige dropdown-menyene
 st.markdown("""
     <style>
     /* Hovedbakgrunn */
@@ -27,7 +27,7 @@ st.markdown("""
         opacity: 1 !important;
     }
 
-    /* 3. SIDEBAR: Hvit bakgrunn med mørk tekst */
+    /* 3. SIDEBAR: Lys bakgrunn */
     section[data-testid="stSidebar"] {
         background-color: #f8fafc !important;
     }
@@ -35,21 +35,23 @@ st.markdown("""
         color: #1e293b !important;
     }
 
-    /* 4. DROPDOWN-FIX: Tvinger teksten til å være SORT i alle moduser */
-    /* Dette treffer selve boksen når den er lukket */
-    .stSelectbox div[data-baseweb="select"] > div {
-        color: #000000 !important;
-    }
-
-    /* Dette treffer listen når den er ÅPEN (Streamlit Popover) */
-    ul[data-baseweb="menu"] li {
+    /* 4. DROPDOWN-FIX (EKSTREM VERSJON): */
+    /* Denne treffer selve boksen når den er lukket */
+    div[data-baseweb="select"] > div {
         color: #000000 !important;
         background-color: #ffffff !important;
     }
 
-    /* Fjerner lys tekst-skygge som kan oppstå i visse temaer */
-    div[role="listbox"] div {
+    /* Denne treffer listen når den spretter ut (uansett hvor på skjermen den er) */
+    div[data-baseweb="popover"] *, 
+    div[data-baseweb="menu"] *, 
+    div[role="listbox"] * {
         color: #000000 !important;
+    }
+
+    /* Fjerner eventuelle skygger eller effekter som gjør teksten utydelig */
+    div[data-baseweb="select"] {
+        border-radius: 4px !important;
     }
 
     /* Avrunding av graf-beholderen */
@@ -130,27 +132,4 @@ with col2:
     st.metric("Nedbetalingstid", f"{round(payback_years, 1)} år")
 
 st.divider()
-st.subheader("Akkumulert netto gevinst over 50 år (NOK)")
-
-years = list(range(0, 51))
-accumulated_values = [int(annual_savings * i - net_investment) for i in years]
-df_graph = pd.DataFrame({"ÅR": years, "NOK": accumulated_values}).set_index("ÅR")
-st.area_chart(df_graph)
-
-# --- EXCEL ---
-output = io.BytesIO()
-with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
-    df_graph.reset_index().to_excel(writer, index=False, sheet_name='Nedbetalingsplan')
-processed_data = output.getvalue()
-
-st.download_button(
-    label="📥 Last ned 50-års plan (Excel)",
-    data=processed_data,
-    file_name="solcelle_analyse_50aar.xlsx",
-    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-)
-
-st.divider()
-st.subheader("🌱 Din miljøprofil")
-co2_saved_50y = (yearly_production * 50) * 0.4 / 1000
-st.write(f"Over 50 år vil anlegget spare miljøet for ca. **{round(co2_saved_50y, 1)} tonn CO2**.")
+st.subheader("Akkumulert netto gevinst over 50 år (NOK
