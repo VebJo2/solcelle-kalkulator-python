@@ -5,7 +5,7 @@ import io
 # 1. Konfigurasjon og Design
 st.set_page_config(page_title="Solcelle-Analytikeren Pro", layout="centered")
 
-# CSS for ekstrem overstyring av farger og mørk tekst i dropdowns
+# CSS for ekstrem overstyring av farger, inkludert de gjenstridige dropdown-menyene
 st.markdown("""
     <style>
     /* Hovedbakgrunn */
@@ -35,14 +35,20 @@ st.markdown("""
         color: #1e293b !important;
     }
 
-    /* 4. DROPDOWN/SELECTBOX: Tvinger teksten til å være sort */
-    /* Dette fikser teksten inne i menyene i sidebaren */
-    div[data-baseweb="select"] * {
+    /* 4. DROPDOWN-FIX: Tvinger teksten til å være SORT i alle moduser */
+    /* Dette treffer selve boksen når den er lukket */
+    .stSelectbox div[data-baseweb="select"] > div {
         color: #000000 !important;
     }
-    
-    /* Fikser også fargen på selve input-feltene i sidebaren */
-    div[data-testid="stSelectbox"] div {
+
+    /* Dette treffer listen når den er ÅPEN (Streamlit Popover) */
+    ul[data-baseweb="menu"] li {
+        color: #000000 !important;
+        background-color: #ffffff !important;
+    }
+
+    /* Fjerner lys tekst-skygge som kan oppstå i visse temaer */
+    div[role="listbox"] div {
         color: #000000 !important;
     }
 
