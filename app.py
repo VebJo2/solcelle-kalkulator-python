@@ -5,7 +5,7 @@ import io
 # 1. Konfigurasjon og Design
 st.set_page_config(page_title="Solcelle-Analytikeren Pro", layout="centered")
 
-# CSS for ekstrem overstyring av farger
+# CSS for ekstrem overstyring av farger og mørk tekst i dropdowns
 st.markdown("""
     <style>
     /* Hovedbakgrunn */
@@ -13,25 +13,37 @@ st.markdown("""
         background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
     }
     
-    /* 1. OVERKRIFTER (H1, H2, H3): Kritt-hvit */
+    /* 1. OVERKRIFTER: Helt kritt-hvit */
     h1, h2, h3, .stMarkdown h1, .stMarkdown h2, .stMarkdown h3 {
         color: #ffffff !important;
         opacity: 1 !important;
         font-weight: 800 !important;
     }
 
-    /* 2. BESKRIVELSER OG ALL ANNEN TEKST: Nesten helt hvit (#fafafa) */
-    /* Vi overstyrer Streamlits 'secondary' tekstfarge her */
+    /* 2. BESKRIVELSER OG BRØDTEKST: Nesten helt hvit (#fafafa) */
     .stMarkdown p, .stMarkdown span, .stMarkdown div, .stMarkdown li, 
     label, p, span, div, .stCaption {
         color: #fafafa !important;
         opacity: 1 !important;
     }
 
-    /* 3. METRIC LABELS: Teksten over tallene i boksene */
-    div[data-testid="metric-container"] label {
-        color: #fafafa !important;
-        opacity: 1 !important;
+    /* 3. SIDEBAR: Hvit bakgrunn med mørk tekst */
+    section[data-testid="stSidebar"] {
+        background-color: #f8fafc !important;
+    }
+    section[data-testid="stSidebar"] * {
+        color: #1e293b !important;
+    }
+
+    /* 4. DROPDOWN/SELECTBOX: Tvinger teksten til å være sort */
+    /* Dette fikser teksten inne i menyene i sidebaren */
+    div[data-baseweb="select"] * {
+        color: #000000 !important;
+    }
+    
+    /* Fikser også fargen på selve input-feltene i sidebaren */
+    div[data-testid="stSelectbox"] div {
+        color: #000000 !important;
     }
 
     /* Avrunding av graf-beholderen */
@@ -41,15 +53,7 @@ st.markdown("""
         border: 1px solid rgba(255, 255, 255, 0.15);
     }
 
-    /* Sidebar: Beholder mørk tekst for kontrast */
-    section[data-testid="stSidebar"] {
-        background-color: #f8fafc !important;
-    }
-    section[data-testid="stSidebar"] * {
-        color: #1e293b !important;
-    }
-
-    /* Metric-bokser og tall */
+    /* Metric-bokser */
     div[data-testid="metric-container"] {
         background: rgba(255, 255, 255, 0.05);
         padding: 15px;
