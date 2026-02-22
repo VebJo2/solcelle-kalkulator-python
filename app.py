@@ -5,7 +5,7 @@ import io
 # 1. Konfigurasjon og Design
 st.set_page_config(page_title="Solcelle-Analytikeren Pro", layout="centered")
 
-# CSS som tvinger overskrifter til å bli helt hvite
+# CSS for maksimal lysstyrke på all tekst
 st.markdown("""
     <style>
     /* Hovedbakgrunn */
@@ -13,27 +13,30 @@ st.markdown("""
         background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
     }
     
-    /* TVINGER alle overskrifter til 100% hvit uten gjennomsiktighet */
+    /* OVERKRIFTER: Helt krittfarget hvit */
     h1, h2, h3, .stMarkdown h1, .stMarkdown h2, .stMarkdown h3 {
         color: #ffffff !important;
         opacity: 1 !important;
         font-weight: 800 !important;
     }
 
-    /* Brødtekst og merkelapper - LYS GRÅHVIT (#f1f5f9) */
-    .main p, .main span, .main label, .main .stMarkdown p {
-        color: #f1f5f9 !important;
+    /* BESKRIVELSER OG BRØDTEKST: Ekstremt lys hvit (#fafafa) */
+    /* Dette inkluderer alt fra tekst under heading til tall-forklaringer */
+    .main p, .main span, .main label, .main .stMarkdown p, .main li {
+        color: #fafafa !important;
         opacity: 1 !important;
+        font-weight: 400;
     }
 
-    /* Avrunding av graf-beholderen */
+    /* Avrunding av graf-beholderen (7px) */
     [data-testid="stArrowVegachart"] {
         border-radius: 7px !important;
         overflow: hidden;
-        border: 1px solid rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        background-color: rgba(255, 255, 255, 0.02);
     }
 
-    /* Sidebar: Mørk tekst på lys bakgrunn */
+    /* Sidebar: Beholder mørk tekst for brukervennlighet */
     section[data-testid="stSidebar"] {
         background-color: #f8fafc !important;
     }
@@ -43,20 +46,25 @@ st.markdown("""
 
     /* Metric-bokser */
     div[data-testid="metric-container"] {
-        background: rgba(255, 255, 255, 0.03);
+        background: rgba(255, 255, 255, 0.05);
         padding: 15px;
         border-radius: 10px;
+    }
+    /* Teksten over tallene i boksene gjøres også lysere */
+    div[data-testid="metric-container"] label {
+        color: #fafafa !important;
     }
     div[data-testid="stMetricValue"] {
         color: #ffcf33 !important;
     }
 
-    /* Download-knappen */
+    /* Download-knappen: Gul med svart tekst */
     div.stDownloadButton > button {
         background-color: #ffcf33 !important;
         color: #000000 !important;
-        border-radius: 7px !important;
+        font-weight: bold !important;
         border: none !important;
+        border-radius: 7px !important;
     }
     </style>
     """, unsafe_allow_html=True)
@@ -84,7 +92,7 @@ with st.sidebar:
     el_price_manual = st.number_input("Eller skriv inn nøyaktig pris", value=float(el_price_slider), step=0.01)
     el_price = el_price_manual
 
-# --- LOGIKK ---
+# --- LOGIKK OG BEREGNINGER ---
 dir_factor = 1.0 if "Sør" in direction else 0.85 if "Øst" in direction else 0.6
 region_kwh_map = {"Sør/Østlandet": 1000, "Vestlandet": 850, "Midt-Norge": 750, "Nord-Norge": 650}
 region_effekt = region_kwh_map[region]
@@ -118,6 +126,7 @@ accumulated_values = [int(annual_savings * i - net_investment) for i in years]
 df_graph = pd.DataFrame({"ÅR": years, "NOK": accumulated_values}).set_index("ÅR")
 st.area_chart(df_graph)
 
+# --- EXCEL ---
 output = io.BytesIO()
 with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
     df_graph.reset_index().to_excel(writer, index=False, sheet_name='Nedbetalingsplan')
