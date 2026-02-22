@@ -5,7 +5,7 @@ import io
 # 1. Konfigurasjon og Design
 st.set_page_config(page_title="Solcelle-Analytikeren Pro", layout="centered")
 
-# CSS for maksimal lysstyrke på all tekst
+# CSS for ekstrem overstyring av farger
 st.markdown("""
     <style>
     /* Hovedbakgrunn */
@@ -13,30 +13,35 @@ st.markdown("""
         background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
     }
     
-    /* OVERKRIFTER: Helt krittfarget hvit */
+    /* 1. OVERKRIFTER (H1, H2, H3): Kritt-hvit */
     h1, h2, h3, .stMarkdown h1, .stMarkdown h2, .stMarkdown h3 {
         color: #ffffff !important;
         opacity: 1 !important;
         font-weight: 800 !important;
     }
 
-    /* BESKRIVELSER OG BRØDTEKST: Ekstremt lys hvit (#fafafa) */
-    /* Dette inkluderer alt fra tekst under heading til tall-forklaringer */
-    .main p, .main span, .main label, .main .stMarkdown p, .main li {
+    /* 2. BESKRIVELSER OG ALL ANNEN TEKST: Nesten helt hvit (#fafafa) */
+    /* Vi overstyrer Streamlits 'secondary' tekstfarge her */
+    .stMarkdown p, .stMarkdown span, .stMarkdown div, .stMarkdown li, 
+    label, p, span, div, .stCaption {
         color: #fafafa !important;
         opacity: 1 !important;
-        font-weight: 400;
     }
 
-    /* Avrunding av graf-beholderen (7px) */
+    /* 3. METRIC LABELS: Teksten over tallene i boksene */
+    div[data-testid="metric-container"] label {
+        color: #fafafa !important;
+        opacity: 1 !important;
+    }
+
+    /* Avrunding av graf-beholderen */
     [data-testid="stArrowVegachart"] {
         border-radius: 7px !important;
         overflow: hidden;
         border: 1px solid rgba(255, 255, 255, 0.15);
-        background-color: rgba(255, 255, 255, 0.02);
     }
 
-    /* Sidebar: Beholder mørk tekst for brukervennlighet */
+    /* Sidebar: Beholder mørk tekst for kontrast */
     section[data-testid="stSidebar"] {
         background-color: #f8fafc !important;
     }
@@ -44,27 +49,23 @@ st.markdown("""
         color: #1e293b !important;
     }
 
-    /* Metric-bokser */
+    /* Metric-bokser og tall */
     div[data-testid="metric-container"] {
         background: rgba(255, 255, 255, 0.05);
         padding: 15px;
         border-radius: 10px;
     }
-    /* Teksten over tallene i boksene gjøres også lysere */
-    div[data-testid="metric-container"] label {
-        color: #fafafa !important;
-    }
     div[data-testid="stMetricValue"] {
         color: #ffcf33 !important;
     }
 
-    /* Download-knappen: Gul med svart tekst */
+    /* Download-knappen */
     div.stDownloadButton > button {
         background-color: #ffcf33 !important;
         color: #000000 !important;
         font-weight: bold !important;
-        border: none !important;
         border-radius: 7px !important;
+        border: none !important;
     }
     </style>
     """, unsafe_allow_html=True)
@@ -92,7 +93,7 @@ with st.sidebar:
     el_price_manual = st.number_input("Eller skriv inn nøyaktig pris", value=float(el_price_slider), step=0.01)
     el_price = el_price_manual
 
-# --- LOGIKK OG BEREGNINGER ---
+# --- LOGIKK ---
 dir_factor = 1.0 if "Sør" in direction else 0.85 if "Øst" in direction else 0.6
 region_kwh_map = {"Sør/Østlandet": 1000, "Vestlandet": 850, "Midt-Norge": 750, "Nord-Norge": 650}
 region_effekt = region_kwh_map[region]
