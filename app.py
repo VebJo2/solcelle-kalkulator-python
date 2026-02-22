@@ -5,7 +5,7 @@ import io
 # 1. Konfigurasjon og Design
 st.set_page_config(page_title="Solcelle-Analytikeren Pro", layout="centered")
 
-# CSS for total kontroll over farger og de gjenstridige dropdown-menyene
+# CSS for total kontroll over farger, lysstyrke og de gjenstridige dropdown-menyene
 st.markdown("""
     <style>
     /* Hovedbakgrunn */
@@ -27,7 +27,7 @@ st.markdown("""
         opacity: 1 !important;
     }
 
-    /* 3. SIDEBAR: Lys bakgrunn */
+    /* 3. SIDEBAR: Lys bakgrunn med mørk tekst */
     section[data-testid="stSidebar"] {
         background-color: #f8fafc !important;
     }
@@ -35,23 +35,20 @@ st.markdown("""
         color: #1e293b !important;
     }
 
-    /* 4. DROPDOWN-FIX (EKSTREM VERSJON): */
-    /* Denne treffer selve boksen når den er lukket */
+    /* 4. DROPDOWN-FIX (ULTRA): Tvinger hvit bakgrunn og sort tekst på alt av menyer */
+    /* Lukket boks */
     div[data-baseweb="select"] > div {
-        color: #000000 !important;
         background-color: #ffffff !important;
+        color: #000000 !important;
     }
-
-    /* Denne treffer listen når den spretter ut (uansett hvor på skjermen den er) */
+    
+    /* Åpen meny og alle under-elementer */
     div[data-baseweb="popover"] *, 
     div[data-baseweb="menu"] *, 
-    div[role="listbox"] * {
+    ul[role="listbox"] *,
+    div[role="option"] * {
         color: #000000 !important;
-    }
-
-    /* Fjerner eventuelle skygger eller effekter som gjør teksten utydelig */
-    div[data-baseweb="select"] {
-        border-radius: 4px !important;
+        background-color: #ffffff !important;
     }
 
     /* Avrunding av graf-beholderen */
@@ -105,7 +102,7 @@ with st.sidebar:
     el_price_manual = st.number_input("Eller skriv inn nøyaktig pris", value=float(el_price_slider), step=0.01)
     el_price = el_price_manual
 
-# --- LOGIKK ---
+# --- LOGIKK OG BEREGNINGER ---
 dir_factor = 1.0 if "Sør" in direction else 0.85 if "Øst" in direction else 0.6
 region_kwh_map = {"Sør/Østlandet": 1000, "Vestlandet": 850, "Midt-Norge": 750, "Nord-Norge": 650}
 region_effekt = region_kwh_map[region]
@@ -132,4 +129,27 @@ with col2:
     st.metric("Nedbetalingstid", f"{round(payback_years, 1)} år")
 
 st.divider()
-st.subheader("Akkumulert netto gevinst over 50 år (NOK
+st.subheader("Akkumulert netto gevinst over 50 år (NOK)")
+
+years = list(range(0, 51))
+accumulated_values = [int(annual_savings * i - net_investment) for i in years]
+df_graph = pd.DataFrame({"ÅR": years, "NOK": accumulated_values}).set_index("ÅR")
+st.area_chart(df_graph)
+
+# --- EXCEL ---
+output = io.BytesIO()
+with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
+    df_graph.reset_index().to_excel(writer, index=False, sheet_name='Nedbetalingsplan')
+processed_data = output.getvalue()
+
+st.download_button(
+    label="📥 Last ned 50-års plan (Excel)",
+    data=processed_data,
+    file_name="solcelle_analyse_50aar.xlsx",
+    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+)
+
+st.divider()
+st.subheader("🌱 Din miljøprofil")
+co2_saved_50y = (yearly_production * 50) * 0.4 / 1000
+st.write(f"Over 50 år vil anlegget spare miljøet for ca. **{round(co2_saved_50y, 1)} tonn CO2**.")
