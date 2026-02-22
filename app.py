@@ -5,7 +5,7 @@ import io
 # 1. Konfigurasjon og Design
 st.set_page_config(page_title="Solcelle-Analytikeren Pro", layout="centered")
 
-# Avansert CSS for farger og kontrast
+# Avansert CSS for hierarki i lys tekst og avrundede grafer
 st.markdown("""
     <style>
     /* Hovedbakgrunn */
@@ -13,9 +13,22 @@ st.markdown("""
         background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
     }
     
-    /* Hovedinnhold: Overskrifter og tekst i senter */
-    .main h1, .main h2, .main h3, .main p, .main .stMarkdown {
+    /* Header-tekst (H1) - Den lyseste */
+    .main h1 {
         color: #ffffff !important;
+        font-weight: 800 !important;
+    }
+
+    /* Underoverskrifter og vanlig tekst - Litt mindre lys enn H1 */
+    .main h2, .main h3, .main p, .main span, .main label {
+        color: #f1f5f9 !important;
+    }
+
+    /* Avrunding av graf-beholderen */
+    [data-testid="stArrowVegachart"] {
+        border-radius: 7px !important;
+        overflow: hidden;
+        border: 1px solid rgba(255, 255, 255, 0.1);
     }
 
     /* Sidebar (Konfigurasjon): Mørk tekst på lys bakgrunn */
@@ -30,12 +43,13 @@ st.markdown("""
     }
 
     /* Metric-bokser (Hovedtall) */
-    div[data-testid="metric-container"] label {
-        color: #e2e8f0 !important; /* Lys grå/hvit tekst på merkelappen */
-        font-weight: 500;
+    div[data-testid="metric-container"] {
+        background: rgba(255, 255, 255, 0.03);
+        padding: 15px;
+        border-radius: 10px;
     }
     div[data-testid="stMetricValue"] {
-        color: #ffcf33 !important; /* Gul farge på selve tallene */
+        color: #ffcf33 !important; /* Gul farge på tallene for fokus */
         font-weight: 800;
     }
 
@@ -45,6 +59,7 @@ st.markdown("""
         color: #000000 !important;
         font-weight: bold !important;
         border: none !important;
+        border-radius: 7px !important;
     }
     </style>
     """, unsafe_allow_html=True)
@@ -55,7 +70,7 @@ st.write("Profesjonelt beslutningsverktøy for solenergi.")
 def format_no(number):
     return f"{int(number):,}".replace(",", " ")
 
-# --- SIDEBAR: INNDATA (Mørk tekst her) ---
+# --- SIDEBAR: INNDATA ---
 with st.sidebar:
     st.header("⚙️ Konfigurasjon")
     area = st.number_input("Takareal tilgjengelig (m2)", value=40, step=5)
@@ -75,51 +90,4 @@ with st.sidebar:
 
 # --- LOGIKK ---
 dir_factor = 1.0 if "Sør" in direction else 0.85 if "Øst" in direction else 0.6
-region_kwh = {"Sør/Østlandet": 1000, "Vestlandet": 850, "Midt-Norge": 750, "Nord-Norge": 650}[region]
-
-num_panels = int(area / 1.7)
-system_kw = num_panels * 0.4
-yearly_production = system_kw * region_kwh * dir_factor
-
-cost_per_kw = 14000
-total_investment = system_kw * cost_per_kw
-enova_support = 7500 + (system_kw * 1250)
-net_investment = total_investment - enova_support
-annual_savings = yearly_production * el_price
-payback_years = net_investment / annual_savings if annual_savings > 0 else 0
-
-# --- VISNING ---
-st.subheader("Hovedtall")
-col1, col2 = st.columns(2)
-with col1:
-    st.metric("Årlig produksjon", f"{format_no(yearly_production)} kWh")
-    st.metric("Antall paneler", f"{num_panels} stk")
-with col2:
-    st.metric("Netto investering", f"{format_no(net_investment)} kr")
-    st.metric("Nedbetalingstid", f"{round(payback_years, 1)} år")
-
-st.divider()
-st.subheader("Akkumulert netto gevinst over 50 år (NOK)")
-
-years = list(range(0, 51))
-accumulated_values = [int(annual_savings * i - net_investment) for i in years]
-
-df_graph = pd.DataFrame({"ÅR": years, "NOK": accumulated_values}).set_index("ÅR")
-st.area_chart(df_graph)
-
-output = io.BytesIO()
-with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
-    df_graph.reset_index().to_excel(writer, index=False, sheet_name='Nedbetalingsplan')
-processed_data = output.getvalue()
-
-st.download_button(
-    label="📥 Last ned 50-års plan (Excel)",
-    data=processed_data,
-    file_name="solcelle_analyse_50aar.xlsx",
-    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-)
-
-st.divider()
-st.subheader("🌱 Din miljøprofil")
-co2_saved_50y = (yearly_production * 50) * 0.4 / 1000
-st.write(f"Over 50 år vil anlegget spare miljøet for ca. **{round(co2_saved_50y, 1)} tonn CO2**.")
+region_kwh = {"Sør/Østlandet": 1000, "Vestlandet": 850, "Midt-Norge": 750, "Nord-Norge": 650
