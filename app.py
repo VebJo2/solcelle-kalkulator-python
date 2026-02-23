@@ -3,17 +3,17 @@ import pandas as pd
 import io
 
 # 1. Konfigurasjon og Design
-st.set_page_config(page_title="Solcelle-Analytikeren Pro", layout="centered")
+st.set_page_config(page_title="Solcelle kalkulator", layout="centered")
 
-# CSS for total kontroll over farger, lysstyrke og de gjenstridige dropdown-menyene
+# CSS for kontroll over farger, lysstyrke og ropdown-menyene
 st.markdown("""
     <style>
     /* Hovedbakgrunn */
     .stApp {
-        background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
+        background: linear-gradient(180deg, #0f172a 10%, #1e293b 100%);
     }
     
-    /* 1. OVERKRIFTER: Helt kritt-hvit */
+    /* 1. OVERKRIFTER: Helt hvit */
     h1, h2, h3, .stMarkdown h1, .stMarkdown h2, .stMarkdown h3 {
         color: #ffffff !important;
         opacity: 1 !important;
